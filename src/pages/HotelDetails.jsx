@@ -66,6 +66,8 @@ function HotelDetails() {
 
   if (!hotel) return <p>Loading...</p>;
 
+  const hasDates = checkIn && checkOut;
+
   return (
     <div className="hotel-details-header">
       <h2>{hotel.name}</h2>
@@ -82,15 +84,11 @@ function HotelDetails() {
               <span>Room no.{room.roomNumber}</span>
               <span>Price: {room.roomPrice} €</span>
 
-              {isAvailable ? (
-                <span style={{ color: "green", fontWeight: "bold" }}>Available</span>
-              ) : (
-                <span style={{ color: "red", fontWeight: "bold" }}>Not available</span>
-              )}
-
-              {isAvailable && (
-                <button onClick={() => handleReserve(room.id)}>Reserve</button>
-              )}
+              {hasDates && isAvailable && <span style={{color:"green"}}>Available</span>}
+              {hasDates && !isAvailable && <span style={{color:"red"}}>Not available</span>}
+              {hasDates && isAvailable && <button onClick={() => 
+                  handleReserve(room.id)}>Reserve</button>}
+              {!hasDates && <span style={{color:"gray"}}>Select dates to check availability</span>}
             </li>
           );
         })}
