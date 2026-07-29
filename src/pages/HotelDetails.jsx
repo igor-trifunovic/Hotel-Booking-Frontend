@@ -13,6 +13,7 @@ function HotelDetails() {
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [availableRoomIds, setAvailableRoomIds] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState([]);
 
   useEffect(() => {
     fetch(
@@ -37,6 +38,20 @@ function HotelDetails() {
       .then(data => setAvailableRoomIds(data.map(room => room.id)));
   }, [hotelId, checkIn, checkOut])
 
+  useEffect(() => {
+    if (!checkIn || !checkOut) return;
+
+    setAvailabilityLoading(true);
+
+    fetch(
+      `${API_BASE_URL}/api/availability?...`)
+      .then(res => res.json())
+      .then(data => {
+        setAvailableRoomIds(data.map(room => room.id));
+        setAvailabilityLoading(false);
+      });
+  }, [hotelId,checkIn, checkOut])
+  
   function handleReserve(roomId) {
     const token = getToken();
 
@@ -83,6 +98,10 @@ function HotelDetails() {
             <li key={room.id} className="room-list">
               <span>Room no.{room.roomNumber}</span>
               <span>Price: {room.roomPrice} €</span>
+
+              {hasDates && availabilityLoading && (
+                <span style={{color: "gray"}}>Checking availability...</span>
+              )}
 
               {hasDates && isAvailable && <span style={{color:"green"}}>Available</span>}
               {hasDates && !isAvailable && <span style={{color:"red"}}>Not available</span>}
