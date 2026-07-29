@@ -316,6 +316,56 @@ input {
 }
 
 /* =========================
+   HOTELS SECTION (Homepage)
+========================= */
+.hotels-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.hotels-section h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.hotels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.hotel-preview-card {
+  display: block;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hotel-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.hotel-preview-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.hotel-preview-card p {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* =========================
    AUTH PAGES (split-panel)
 ========================= */
 .auth-page {
@@ -818,6 +868,10 @@ input {
   }
 
   .reservation-list {
+    grid-template-columns: 1fr;
+  }
+
+  .hotels-grid {
     grid-template-columns: 1fr;
   }
 }

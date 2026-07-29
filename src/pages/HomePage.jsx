@@ -1,4 +1,7 @@
 import SearchForm from "../components/SearchForm";
+import { useEffect, useState } from "react";
+import API_BASE_URL from "../services/api";
+import { Link } from "react-router-dom";
 
 const features = [
   {
@@ -23,10 +26,20 @@ const features = [
   },
 ];
 
+
 function HomePage() {
+
+  const [hotels, setHotels] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/hotels`)
+    .then(res => res.json())
+    .then(data => setHotels(data))
+    .catch(err => console.error("Failed to load hotels:", err))
+  }, []);
+
   return (
     <div className="home-page">
-      {/* ── Hero ── */}
       <section className="hero">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -42,7 +55,18 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ── Feature highlights ── */}
+      <section className="hotels-section">
+        <h2>Explore our hotels</h2>
+        <div className="hotels-grid">
+          {hotels.map(hotel => (
+            <Link key={hotel.id} to={`/hotels/${hotel.id}`} className="hotel-preview-card">
+              <h3>{hotel.name}</h3>
+              <p>{hotel.location}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="features-section">
         <h2 className="features-heading">Why book with us?</h2>
         <div className="features-grid">
@@ -55,6 +79,7 @@ function HomePage() {
           ))}
         </div>
       </section>
+
     </div>
   );
 }
