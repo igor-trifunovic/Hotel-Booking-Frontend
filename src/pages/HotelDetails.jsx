@@ -13,7 +13,7 @@ function HotelDetails() {
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [availableRoomIds, setAvailableRoomIds] = useState([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   useEffect(() => {
     fetch(
@@ -30,12 +30,33 @@ function HotelDetails() {
   }, [hotelId])
 
   useEffect(() => {
-    if (!checkIn || !checkOut) return;
+    if (!checkIn || !checkOut) {
+      setAvailableRoomIds([]);
+      return;
+    }
+
+    let cancelled = false;
+    setAvailabilityLoading(true);
 
     fetch(
       `${API_BASE_URL}/api/availability?hotelId=${hotelId}&checkIn=${checkIn}&checkOut=${checkOut}`)
-      .then(res => res.json())
-      .then(data => setAvailableRoomIds(data.map(room => room.id)));
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to check availability.");
+        return res.json()
+      })
+      .then(data => {
+        if (!cancelled) setAvailableRoomIds(data.map(room => room.id));
+      })
+      .catch(err => {
+        if (cancelled) return;
+        console.error("Availability error: ", err);
+        setAvailableRoomIds([]);
+      })
+      .finally(() => {
+        if (!cancelled) setAvailabilityLoading(false);
+      });
+
+      return () => { cancelled = true; }
   }, [hotelId, checkIn, checkOut])
 
   useEffect(() => {
@@ -105,9 +126,23 @@ function HotelDetails() {
 
               {hasDates && isAvailable && <span style={{color:"green"}}>Available</span>}
               {hasDates && !isAvailable && <span style={{color:"red"}}>Not available</span>}
-              {hasDates && isAvailable && <button onClick={() => 
-                  handleReserve(room.id)}>Reserve</button>}
+              
               {!hasDates && <span style={{color:"gray"}}>Select dates to check availability</span>}
+
+              {hasDates && availabilityLoading && (
+                <span style={{color: "gray"}}>Checking availability...</span>
+              )}
+
+              {hasDates && !availabilityLoading && (
+                isAvailable ? (
+                  <>
+                    <span style={{color:"green"}}>Available</span>
+                    <button onClick={() => handleReserve(room.id)}>Reserve</button>
+                  </>
+                ) : (
+                  <span style={{color:"red"}}>Not available</span>
+                )
+              )}
             </li>
           );
         })}
