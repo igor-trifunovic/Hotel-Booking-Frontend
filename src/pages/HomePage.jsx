@@ -1,6 +1,7 @@
 import SearchForm from "../components/SearchForm";
 import { useEffect, useState } from "react";
-import API_BASE_URL from "../services/api";
+import { isAbortError } from "../services/api";
+import { getHotels } from "../services/HotelService";
 import { Link } from "react-router-dom";
 
 const features = [
@@ -32,10 +33,16 @@ function HomePage() {
   const [hotels, setHotels] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/hotels`)
-    .then(res => res.json())
-    .then(data => setHotels(data))
-    .catch(err => console.error("Failed to load hotels:", err))
+    const controller = new AbortController();
+
+    getHotels({ signal: controller.signal })
+      .then(data => setHotels(data || []))
+      .catch(err => {
+        if (isAbortError(err)) return;
+        console.error("Failed to load hotels:", err);
+      });
+
+    return () => controller.abort();
   }, []);
 
   return (

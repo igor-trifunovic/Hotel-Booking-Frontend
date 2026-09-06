@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import API_BASE_URL from "../services/api";
+import { register } from "../services/AuthService";
 
 function Register() {
   const [name, setName] = useState("");
@@ -20,13 +20,7 @@ function Register() {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, birthDate }),
-      });
-
-      if (!response.ok) throw new Error("Registration failed");
+      await register({ name, email, password, birthDate });
 
       setIsError(false);
       setMessage("Account created! Redirecting to login…");

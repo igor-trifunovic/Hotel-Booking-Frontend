@@ -1,12 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import { isLoggedIn, removeToken } from "../services/AuthService";
+import { isLoggedIn, logout } from "../services/AuthService";
 
 function Navbar() {
   const navigate = useNavigate();
   const loggedIn = isLoggedIn();
 
   const handleLogout = () => {
-    removeToken();
+    logout();
     navigate("/");
   };
 

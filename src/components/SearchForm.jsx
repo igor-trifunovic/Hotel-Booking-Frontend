@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import API_BASE_URL from "../services/api";
+import { isAbortError } from "../services/api";
+import { getHotelSuggestions } from "../services/HotelService";
 
 function SearchForm() {
   const [query, setQuery] = useState("");
@@ -36,17 +37,24 @@ function SearchForm() {
       return;
     }
 
+    const controller = new AbortController();
+
     const timer = setTimeout(() => {
-      fetch(`${API_BASE_URL}/api/hotels/suggestions?query=${encodeURIComponent(query)}`)
-        .then(res => res.json())
+      getHotelSuggestions(query, { signal: controller.signal })
         .then(data => {
-          setSuggestions(data);
+          setSuggestions(data || []);
           setShowSuggestions(true);
         })
-        .catch(() => setSuggestions([]));  
+        .catch(err => {
+          if (isAbortError(err)) return;
+          setSuggestions([]);
+        });
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [query]);
 
   return (

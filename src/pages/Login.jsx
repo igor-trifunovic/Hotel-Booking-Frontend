@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { saveToken } from "../services/AuthService";
-import API_BASE_URL from "../services/api";
+import { login } from "../services/AuthService";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -18,20 +17,8 @@ function Login() {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        saveToken(data.token);
-        navigate("/");
-      } else {
-        throw new Error("Login failed.");
-      }
+      await login({ email, password });
+      navigate("/");
     } catch {
       setError("Invalid email or password. Please try again.");
     } finally {
