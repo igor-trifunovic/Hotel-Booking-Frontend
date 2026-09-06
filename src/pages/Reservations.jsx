@@ -1,34 +1,32 @@
 import { useEffect, useState } from "react";
-import { getToken } from "../services/AuthService";
-import API_BASE_URL from "../services/api";
+import { isLoggedIn } from "../services/AuthService";
+import { isAbortError } from "../services/api";
+import { getMyReservations } from "../services/ReservationService";
 
 function Reservations() {
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = getToken();
-
-    if (!token) {
+    if (!isLoggedIn()) {
       setError("You must be logged in to view your reservations.");
       return;
     }
 
-    fetch(`${API_BASE_URL}/api/reservations/me`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch reservations.");
-        return res.json();
-      })
+    const controller = new AbortController();
+
+    getMyReservations({ signal: controller.signal })
       .then((data) => {
-        setReservations(data);
+        setReservations(data || []);
         setError("");
       })
       .catch((err) => {
+        if (isAbortError(err)) return;
         console.error(err);
         setError("Unable to load reservations.");
       });
+
+    return () => controller.abort();
   }, []);
 
   return (

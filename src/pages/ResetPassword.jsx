@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import API_BASE_URL from "../services/api";
+import { resetPassword } from "../services/AuthService";
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -47,21 +47,18 @@ function ResetPassword() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword }),
-      });
-
-      if (res.ok) {
-        setSuccess(true);
-        setTimeout(() => navigate("/login"), 3000);
+      await resetPassword({ token, newPassword });
+      setSuccess(true);
+      setTimeout(() => navigate("/login"), 3000);
+    } catch (err) {
+      if (err.status) {
+        setError(
+          (err.body && err.body.message) ||
+            "This link is invalid or has expired. Please request a new one."
+        );
       } else {
-        const data = await res.json();
-        setError(data.message || "This link is invalid or has expired. Please request a new one.");
+        setError("Something went wrong. Please try again.");
       }
-    } catch {
-      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

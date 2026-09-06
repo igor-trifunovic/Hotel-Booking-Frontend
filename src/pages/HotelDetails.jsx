@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom";
-import { getToken } from "../services/AuthService";
-import API_BASE_URL from "../services/api";
+import { isLoggedIn } from "../services/AuthService";
+import { isAbortError } from "../services/api";
+import { getAvailability, getHotel, getRooms } from "../services/HotelService";
+import { createReservation } from "../services/ReservationService";
 
 function HotelDetails() {
   const { hotelId } = useParams();
@@ -16,17 +18,29 @@ function HotelDetails() {
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   useEffect(() => {
-    fetch(
-      `${API_BASE_URL}/api/hotels/${hotelId}`)
-      .then(res => res.json())
-      .then(data => setHotel(data));
+    const controller = new AbortController();
+
+    getHotel(hotelId, { signal: controller.signal })
+      .then(data => setHotel(data))
+      .catch(err => {
+        if (isAbortError(err)) return;
+        console.error("Failed to load hotel:", err);
+      });
+
+    return () => controller.abort();
   }, [hotelId])
 
   useEffect(() => {
-    fetch(
-      `${API_BASE_URL}/api/rooms?hotelId=${hotelId}`)
-      .then(res => res.json())
-      .then(data => setRooms(data))
+    const controller = new AbortController();
+
+    getRooms(hotelId, { signal: controller.signal })
+      .then(data => setRooms(data || []))
+      .catch(err => {
+        if (isAbortError(err)) return;
+        console.error("Failed to load rooms:", err);
+      });
+
+    return () => controller.abort();
   }, [hotelId])
 
   useEffect(() => {
@@ -35,69 +49,33 @@ function HotelDetails() {
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
+
     setAvailabilityLoading(true);
 
-    fetch(
-      `${API_BASE_URL}/api/availability?hotelId=${hotelId}&checkIn=${checkIn}&checkOut=${checkOut}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to check availability.");
-        return res.json()
-      })
-      .then(data => {
-        if (!cancelled) setAvailableRoomIds(data.map(room => room.id));
-      })
+    getAvailability({ hotelId, checkIn, checkOut }, { signal: controller.signal })
+      .then(data => setAvailableRoomIds((data || []).map(room => room.id)))
       .catch(err => {
-        if (cancelled) return;
-        console.error("Availability error: ", err);
+        if (isAbortError(err)) return;
+        console.error("Availability error:", err);
         setAvailableRoomIds([]);
       })
       .finally(() => {
-        if (!cancelled) setAvailabilityLoading(false);
+        if (!controller.signal.aborted) setAvailabilityLoading(false);
       });
 
-      return () => { cancelled = true; }
+    return () => controller.abort();
   }, [hotelId, checkIn, checkOut])
 
-  useEffect(() => {
-    if (!checkIn || !checkOut) return;
-
-    setAvailabilityLoading(true);
-
-    fetch(
-      `${API_BASE_URL}/api/availability?...`)
-      .then(res => res.json())
-      .then(data => {
-        setAvailableRoomIds(data.map(room => room.id));
-        setAvailabilityLoading(false);
-      });
-  }, [hotelId,checkIn, checkOut])
-  
   function handleReserve(roomId) {
-    const token = getToken();
-
-    if (!token) {
+    if (!isLoggedIn()) {
       alert("You have to be logged in to make a reservation.");
       return;
     }
 
-    fetch(`${API_BASE_URL}/api/reservations`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        roomId,
-        checkInDate: checkIn,
-        checkOutDate: checkOut
-      })
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Reservation failed.");
-        alert("Reservation successful.");
-      })
-      .catch(err => alert(err.message));
+    createReservation({ roomId, checkInDate: checkIn, checkOutDate: checkOut })
+      .then(() => alert("Reservation successful."))
+      .catch(err => alert(err.message || "Reservation failed."));
   }
 
   if (!hotel) return <p>Loading...</p>;
@@ -120,13 +98,6 @@ function HotelDetails() {
               <span>Room no.{room.roomNumber}</span>
               <span>Price: {room.roomPrice} €</span>
 
-              {hasDates && availabilityLoading && (
-                <span style={{color: "gray"}}>Checking availability...</span>
-              )}
-
-              {hasDates && isAvailable && <span style={{color:"green"}}>Available</span>}
-              {hasDates && !isAvailable && <span style={{color:"red"}}>Not available</span>}
-              
               {!hasDates && <span style={{color:"gray"}}>Select dates to check availability</span>}
 
               {hasDates && availabilityLoading && (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import API_BASE_URL from "../services/api";
+import { requestPasswordReset } from "../services/AuthService";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -12,11 +12,9 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      await requestPasswordReset(email);
+    } catch {
+      // Swallowed on purpose - the outcome must not reveal whether the email exists.
     } finally {
       // Always show success — never reveal whether the email exists
       setSubmitted(true);

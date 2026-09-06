@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import API_BASE_URL from "../services/api";
+import { isAbortError } from "../services/api";
+import { searchHotels } from "../services/HotelService";
 
 function SearchResults() {
   const [searchParams] = useSearchParams();
@@ -20,20 +21,26 @@ function SearchResults() {
       return;
     }
 
-    fetch(`${API_BASE_URL}/api/search?query=${query}&checkIn=${checkIn}&checkOut=${checkOut}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch search results.");
-        return res.json();
-      })
+    const controller = new AbortController();
+
+    setLoading(true);
+    setError("");
+
+    searchHotels({ query, checkIn, checkOut }, { signal: controller.signal })
       .then((data) => {
-        setResults(data);
+        setResults(data || []);
         setError("");
       })
       .catch((err) => {
+        if (isAbortError(err)) return;
         console.error("Search error:", err);
         setError("Unable to load hotels.");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => controller.abort();
   }, [query, checkIn, checkOut]);
 
   return (

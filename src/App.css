@@ -244,21 +244,6 @@ input {
   transform: translateY(-1px);
 }
 
-.primary-button {
-  padding: 12px 22px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.primary-button:hover {
-  background: #1d4ed8;
-}
-
 /* =========================
    FEATURES SECTION
 ========================= */
@@ -770,16 +755,6 @@ input {
 
 .error-text {
   color: #dc2626;
-  font-size: 14px;
-}
-
-.success-text {
-  color: #16a34a;
-  font-size: 14px;
-}
-
-.info-text {
-  color: #475569;
   font-size: 14px;
 }
 
