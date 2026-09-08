@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { isAbortError } from "../services/api";
 import { searchHotels } from "../services/HotelService";
+import { HotelCard } from "../components/HotelCard";
+import { countNights } from "../utils/format";
 
 function SearchResults() {
   const [searchParams] = useSearchParams();
@@ -28,7 +30,9 @@ function SearchResults() {
 
     searchHotels({ query, checkIn, checkOut }, { signal: controller.signal })
       .then((data) => {
-        setResults(data || []);
+        setResults(
+          [...(data || [])].sort((a, b) => (a.minPrice || Infinity) - (b.minPrice || Infinity))
+        );
         setError("");
       })
       .catch((err) => {
@@ -48,7 +52,7 @@ function SearchResults() {
       <h2>Search results</h2>
 
       <p className="search-summary">
-        Hotel: <strong>{query}</strong> | Check In: <strong>{checkIn}</strong> | Check Out: <strong>{checkOut}</strong>
+        Hotel: <strong>{query}</strong> · {checkIn} → {checkOut} · {countNights(checkIn, checkOut)} nights
       </p>
 
       {loading && <p className="empty-state">Loading hotels...</p>}
@@ -62,17 +66,12 @@ function SearchResults() {
       {!loading && !error && results.length > 0 && (
         <div className="hotel-list">
           {results.map((hotel) => (
-            <div key={hotel.id} className="hotel-card">
-              <h3>{hotel.name}</h3>
-              <p>{hotel.location}</p>
-              <p>Available rooms: <strong>{hotel.availableRooms}</strong></p>
-              {hotel.minPrice > 0 && (
-                <p>From: <strong>{hotel.minPrice} €</strong> / night</p>
-              )}
-              <Link to={`/hotels/${hotel.id}?checkIn=${checkIn}&checkOut=${checkOut}`}>
-                View rooms
-              </Link>
-            </div>
+            <HotelCard
+              key={hotel.id}
+              hotel={hotel}
+              checkIn={checkIn}
+              checkOut={checkOut}
+            />
           ))}
         </div>
       )}
