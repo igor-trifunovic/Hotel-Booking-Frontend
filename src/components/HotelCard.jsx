@@ -25,10 +25,15 @@ function HotelCard({ hotel, checkIn, checkOut }) {
 
   return (
     <article className="hotel-card">
+      <img
+          className="hotel-card-image"
+          alt=""
+          loading="lazy"
+      />
       <div className="hotel-card-main">
         <h3 className="hotel-card-name">{hotel.name}</h3>
         <p className="hotel-card-location">{hotel.location}</p>
-
+        
         <div className="hotel-card-meta">
           <span className={availability.className}>{availability.label}</span>
         </div>
@@ -42,7 +47,7 @@ function HotelCard({ hotel, checkIn, checkOut }) {
             <span className="price-unit">per night</span>
             {total != null && (
               <span className="price-total">
-                {formatEuro(total)} total * {nights} {nights === 1 ? "night" : "nights"}
+                {formatEuro(total)} total · {nights} {nights === 1 ? "night" : "nights"}
               </span>
             )}
           </>

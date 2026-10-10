@@ -14,6 +14,6 @@ export function countNights(checkIn, checkOut) {
 
   if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
 
-  const nights = Math.round((end - start) / 8640000);
+  const nights = Math.round((end - start) / 86400000);
   return Math.max(nights, 0);
 }

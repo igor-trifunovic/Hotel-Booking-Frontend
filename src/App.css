@@ -617,6 +617,16 @@ input {
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09);
 }
 
+.hotel-card-image {
+  flex: 0 0 300px;
+  width: 400px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #f1f5f9;
+  display: block;
+}
+
 .hotel-card-main {
   flex: 1;
   min-width: 0;
@@ -739,6 +749,12 @@ input {
     padding-top: 16px;
     align-items: flex-start;
     text-align: left;
+  }
+
+  .hotel-card-image {
+    flex: none;
+    width: 100%;
+    height: 180px;
   }
 }
 

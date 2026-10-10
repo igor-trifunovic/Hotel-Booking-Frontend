@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { isAbortError } from "../services/api";
 import { searchHotels } from "../services/HotelService";
-import { HotelCard } from "../components/HotelCard";
 import { countNights } from "../utils/format";
+import HotelCard from "../components/HotelCard";
 
 function SearchResults() {
   const [searchParams] = useSearchParams();
